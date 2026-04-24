@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files.io - File Compression</title>
+    <link rel="stylesheet" href="SidePanel.css">
+</head>
+<body>
+    <!-- MAIN CONTAINER -->
+    <div class="glass-container">
+        
+        <!-- HEADER SECTION -->
+        <header class="panel-header">
+            <div class="header-content">
+                <h1 class="app-title">Files.io</h1>
+                <p class="app-subtitle">Compress & Decompress</p>
+            </div>
+            <button id="settings-toggle" class="settings-btn" title="Settings">
+                ⚙️
+            </button>
+        </header>
+
+        <!-- SETTINGS PANEL (Hidden by default) -->
+        <div id="settings-panel" class="settings-panel hidden">
+            <div class="settings-header">
+                <h3>Settings</h3>
+                <button id="close-settings" class="close-btn">✕</button>
+            </div>
+            
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label class="setting-label">Compression Level (Video Only)</label>
+                    <div class="slider-wrapper">
+                        <input type="range" id="compression-slider" min="1" max="10" value="5" step="1" class="slider-input">
+                        <div class="slider-track">
+                            <div class="slider-fill"></div>
+                        </div>
+                        <div class="slider-labels">
+                            <span class="label-fast">Fast</span>
+                            <span id="compression-label" class="label-current">Balanced (5/10)</span>
+                            <span class="label-best">Best</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">Options</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="auto-delete-toggle" checked>
+                            <span>Auto-delete after download</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="verify-hash-toggle" checked>
+                            <span>Embed verification hash</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="panel-main">
+            
+            <!-- DRAG & DROP UPLOAD ZONE -->
+            <div class="upload-container">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-icon">📁</div>
+                    <h3 class="drop-title">Drop files here</h3>
+                    <p class="drop-description">Drag from computer or browser</p>
+                    <input type="file" id="file-input" class="file-input" multiple 
+                           accept=".txt,.csv,.jpg,.jpeg,.png,.mp3,.wav,.mp4,.pdf,.gz">
+                </div>
+                <span id="file-name" class="selected-file-name">No file selected</span>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="action-buttons">
+                <button id="btn-compress" class="btn btn-primary" disabled>
+                    <span class="btn-icon">🔒</span>
+                    <span class="btn-text">Compress</span>
+                </button>
+                <button id="btn-decompress" class="btn btn-secondary" disabled>
+                    <span class="btn-icon">🔓</span>
+                    <span class="btn-text">Decompress</span>
+                </button>
+            </div>
+
+            <!-- ERROR MESSAGE DISPLAY -->
+            <div id="error-message" class="alert alert-error hidden">
+                <span class="alert-icon">⚠️</span>
+                <span class="alert-text"></span>
+            </div>
+
+            <!-- PROGRESS BAR SECTION -->
+            <div id="progress-container" class="progress-container hidden">
+                <div class="progress-header">
+                    <span id="progress-status" class="progress-status">Processing...</span>
+                    <span id="progress-percent" class="progress-percent">0%</span>
+                </div>
+                
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="progress-details">
+                    <div class="progress-detail">
+                        <span class="detail-label">Elapsed:</span>
+                        <span id="progress-elapsed" class="detail-value">0:00</span>
+                    </div>
+                    <div class="progress-detail">
+                        <span class="detail-label">Remaining:</span>
+                        <span id="progress-remaining" class="detail-value">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTS DASHBOARD -->
+            <div id="results-dashboard" class="results-dashboard hidden">
+                <h3 class="results-title">Results</h3>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-label">Original</span>
+                        <span class="metric-value" id="val-original">--</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label" id="ui-label-compressed">Compressed</span>
+                        <span class="metric-value" id="val-compressed">--</span>
+                    </div>
+                    <div class="metric-card metric-highlight">
+                        <span class="metric-label">Ratio</span>
+                        <span class="metric-value" id="val-ratio">--</span>
+                    </div>
+                    <div class="metric-card metric-highlight">
+                        <span class="metric-label" id="ui-label-savings">Savings</span>
+                        <span class="metric-value" id="val-savings">--</span>
+                    </div>
+                </div>
+
+                <!-- VERIFICATION STATUS -->
+                <div id="verification-status" class="verification-box hidden">
+                    <span class="verification-icon">✓</span>
+                    <span class="verification-text"></span>
+                </div>
+
+                <!-- DOWNLOAD BUTTON -->
+                <button id="btn-download" class="btn btn-download hidden">
+                    <span class="btn-icon">⬇️</span>
+                    <span class="btn-text">Download Result</span>
+                </button>
+            </div>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="panel-footer">
+            <p class="footer-text">Built by SMG</p>
+            <p class="footer-version">Files.io v1.0</p>
+        </footer>
+
+    </div>
+
+    <!-- LIBRARY SCRIPTS -->
+    <script src="lib/lamejs.min.js"></script>
+    <script src="lib/pako.min.js"></script>
+    <script src="lib/upng.min.js"></script>
+    <script src="lib/jpeg-js.min.js"></script>
+    <script src="lib/pdf-lib.min.js"></script>
+    <script src="lib/ffmpeg-core.js"></script>
+    <script src="lib/ffmpeg.min.js"></script>
+
+    <!-- FILES.IO MODULES -->
+    <script src="scripts/utils/MetaData_manager.js" type="module"></script>
+    <script src="scripts/utils/ProgressTracker.js" type="module"></script>
+    <script src="scripts/ui/SidePanelHandler.js" type="module"></script>
+
+</body>
+</html>

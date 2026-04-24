@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Files.io - Universal File Compression",
+  "version": "1.0.0",
+  "description": "Universal file compression & decompression. Compress files instantly with Files.io.",
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open Files.io"
+  },
+  "icons": {
+    "16": "assets/macs-logo.png",
+    "48": "assets/macs-logo.png",
+    "128": "assets/macs-logo.png"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "offscreen",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "lib/ffmpeg-core.js",
+        "lib/ffmpeg-core.wasm"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
