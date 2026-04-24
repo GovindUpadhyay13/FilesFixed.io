@@ -10,9 +10,9 @@
     "default_title": "Open Files.io"
   },
   "icons": {
-    "16": "assets/macs-logo.png",
-    "48": "assets/macs-logo.png",
-    "128": "assets/macs-logo.png"
+    "16": "assets/filefixed-logo.png",
+    "48": "assets/filefixed-logo.png",
+    "128": "assets/filefixed-logo.png"
   },
   "background": {
     "service_worker": "background/service-worker.js",

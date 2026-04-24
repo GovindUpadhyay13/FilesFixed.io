@@ -1,182 +1,249 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Files.io - File Compression</title>
-    <link rel="stylesheet" href="SidePanel.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FileFixed.io - File Compression</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="SidePanel.css">
 </head>
 <body>
-    <!-- MAIN CONTAINER -->
-    <div class="glass-container">
-        
-        <!-- HEADER SECTION -->
-        <header class="panel-header">
-            <div class="header-content">
-                <h1 class="app-title">Files.io</h1>
-                <p class="app-subtitle">Compress & Decompress</p>
-            </div>
-            <button id="settings-toggle" class="settings-btn" title="Settings">
-                ⚙️
-            </button>
-        </header>
 
-        <!-- SETTINGS PANEL (Hidden by default) -->
-        <div id="settings-panel" class="settings-panel hidden">
-            <div class="settings-header">
-                <h3>Settings</h3>
-                <button id="close-settings" class="close-btn">✕</button>
-            </div>
-            
-            <div class="settings-content">
-                <div class="setting-group">
-                    <label class="setting-label">Compression Level (Video Only)</label>
-                    <div class="slider-wrapper">
-                        <input type="range" id="compression-slider" min="1" max="10" value="5" step="1" class="slider-input">
-                        <div class="slider-track">
-                            <div class="slider-fill"></div>
-                        </div>
-                        <div class="slider-labels">
-                            <span class="label-fast">Fast</span>
-                            <span id="compression-label" class="label-current">Balanced (5/10)</span>
-                            <span class="label-best">Best</span>
-                        </div>
-                    </div>
-                </div>
+<div class="glass-container">
 
-                <div class="setting-group">
-                    <label class="setting-label">Options</label>
-                    <div class="checkbox-group">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="auto-delete-toggle" checked>
-                            <span>Auto-delete after download</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="verify-hash-toggle" checked>
-                            <span>Embed verification hash</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+  <!-- HEADER -->
+  <header class="panel-header">
+    <div class="logo-area">
+      <img src="assets/interface_filefixed.io.png" alt="FileFixed.io" class="header-logo">
+    </div>
+    <button id="theme-toggle" class="icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
+      <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- MODE TABS -->
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-compress" data-mode="compress">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Compress
+    </button>
+    <button class="mode-tab" id="tab-decompress" data-mode="decompress">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Decompress
+    </button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="panel-main">
+
+    <!-- DROP ZONE -->
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-visual">
+        <div class="drop-folder-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
         </div>
-
-        <!-- MAIN CONTENT AREA -->
-        <main class="panel-main">
-            
-            <!-- DRAG & DROP UPLOAD ZONE -->
-            <div class="upload-container">
-                <div class="drop-zone" id="drop-zone">
-                    <div class="drop-icon">📁</div>
-                    <h3 class="drop-title">Drop files here</h3>
-                    <p class="drop-description">Drag from computer or browser</p>
-                    <input type="file" id="file-input" class="file-input" multiple 
-                           accept=".txt,.csv,.jpg,.jpeg,.png,.mp3,.wav,.mp4,.pdf,.gz">
-                </div>
-                <span id="file-name" class="selected-file-name">No file selected</span>
-            </div>
-
-            <!-- ACTION BUTTONS -->
-            <div class="action-buttons">
-                <button id="btn-compress" class="btn btn-primary" disabled>
-                    <span class="btn-icon">🔒</span>
-                    <span class="btn-text">Compress</span>
-                </button>
-                <button id="btn-decompress" class="btn btn-secondary" disabled>
-                    <span class="btn-icon">🔓</span>
-                    <span class="btn-text">Decompress</span>
-                </button>
-            </div>
-
-            <!-- ERROR MESSAGE DISPLAY -->
-            <div id="error-message" class="alert alert-error hidden">
-                <span class="alert-icon">⚠️</span>
-                <span class="alert-text"></span>
-            </div>
-
-            <!-- PROGRESS BAR SECTION -->
-            <div id="progress-container" class="progress-container hidden">
-                <div class="progress-header">
-                    <span id="progress-status" class="progress-status">Processing...</span>
-                    <span id="progress-percent" class="progress-percent">0%</span>
-                </div>
-                
-                <div class="progress-bar-wrapper">
-                    <div class="progress-bar">
-                        <div id="progress-fill" class="progress-fill"></div>
-                    </div>
-                </div>
-                
-                <div class="progress-details">
-                    <div class="progress-detail">
-                        <span class="detail-label">Elapsed:</span>
-                        <span id="progress-elapsed" class="detail-value">0:00</span>
-                    </div>
-                    <div class="progress-detail">
-                        <span class="detail-label">Remaining:</span>
-                        <span id="progress-remaining" class="detail-value">--:--</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RESULTS DASHBOARD -->
-            <div id="results-dashboard" class="results-dashboard hidden">
-                <h3 class="results-title">Results</h3>
-                
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <span class="metric-label">Original</span>
-                        <span class="metric-value" id="val-original">--</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-label" id="ui-label-compressed">Compressed</span>
-                        <span class="metric-value" id="val-compressed">--</span>
-                    </div>
-                    <div class="metric-card metric-highlight">
-                        <span class="metric-label">Ratio</span>
-                        <span class="metric-value" id="val-ratio">--</span>
-                    </div>
-                    <div class="metric-card metric-highlight">
-                        <span class="metric-label" id="ui-label-savings">Savings</span>
-                        <span class="metric-value" id="val-savings">--</span>
-                    </div>
-                </div>
-
-                <!-- VERIFICATION STATUS -->
-                <div id="verification-status" class="verification-box hidden">
-                    <span class="verification-icon">✓</span>
-                    <span class="verification-text"></span>
-                </div>
-
-                <!-- DOWNLOAD BUTTON -->
-                <button id="btn-download" class="btn btn-download hidden">
-                    <span class="btn-icon">⬇️</span>
-                    <span class="btn-text">Download Result</span>
-                </button>
-            </div>
-
-        </main>
-
-        <!-- FOOTER -->
-        <footer class="panel-footer">
-            <p class="footer-text">Built by SMG</p>
-            <p class="footer-version">Files.io v1.0</p>
-        </footer>
-
+        <div class="drop-ring drop-ring-1"></div>
+        <div class="drop-ring drop-ring-2"></div>
+      </div>
+      <p class="drop-title">Drop files here</p>
+      <p class="drop-description">Drag from computer or browser</p>
+      <p class="drop-types">TXT · CSV · PDF · JPG · PNG · MP3 · WAV · MP4 · GZ</p>
+      <input type="file" id="file-input" class="file-input" multiple
+        accept=".txt,.csv,.jpg,.jpeg,.png,.mp3,.wav,.mp4,.avi,.mov,.pdf,.gz">
     </div>
 
-    <!-- LIBRARY SCRIPTS -->
-    <script src="lib/lamejs.min.js"></script>
-    <script src="lib/pako.min.js"></script>
-    <script src="lib/upng.min.js"></script>
-    <script src="lib/jpeg-js.min.js"></script>
-    <script src="lib/pdf-lib.min.js"></script>
-    <script src="lib/ffmpeg-core.js"></script>
-    <script src="lib/ffmpeg.min.js"></script>
+    <!-- FILE PREVIEW CARD (shown after file selected) -->
+    <div id="file-preview-card" class="file-preview-card hidden">
+      <div class="file-preview-icon" id="file-type-badge">FILE</div>
+      <div class="file-preview-info">
+        <div id="file-name" class="file-preview-name">No file selected</div>
+        <div class="file-preview-sizes">
+          <span id="file-original-size" class="size-original">—</span>
+          <span class="size-arrow-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+          <span id="file-est-size" class="size-estimated">—</span>
+        </div>
+      </div>
+      <button class="file-remove-btn" id="remove-file" title="Remove file">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
 
-    <!-- FILES.IO MODULES -->
-    <script src="scripts/utils/MetaData_manager.js" type="module"></script>
-    <script src="scripts/utils/ProgressTracker.js" type="module"></script>
-    <script src="scripts/ui/SidePanelHandler.js" type="module"></script>
+    <!-- VIDEO COMPRESSION LEVEL (video files only) -->
+    <div id="video-options" class="video-options hidden">
+      <div class="video-options-label">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        Video compression level
+      </div>
+      <div class="level-pills">
+        <button class="level-pill" id="pill-fast">
+          <span class="pill-icon">⚡</span> Fast
+          <span class="pill-hint">Larger file, quick</span>
+        </button>
+        <button class="level-pill active" id="pill-max">
+          <span class="pill-icon">💎</span> Max
+          <span class="pill-hint">Smallest file</span>
+        </button>
+      </div>
+      <!-- Hidden slider for JS compatibility -->
+      <input type="range" id="compression-slider" min="1" max="10" value="9" step="1" class="hidden-slider" aria-hidden="true">
+    </div>
+
+    <!-- OPTIONS ROW -->
+    <div class="options-row">
+      <label class="toggle-row">
+        <div class="toggle-switch">
+          <input type="checkbox" id="auto-delete-toggle" checked>
+          <span class="toggle-knob"></span>
+        </div>
+        <span class="toggle-text">Auto-delete after download</span>
+      </label>
+      <label class="toggle-row">
+        <div class="toggle-switch">
+          <input type="checkbox" id="verify-hash-toggle" checked>
+          <span class="toggle-knob"></span>
+        </div>
+        <span class="toggle-text">Verify integrity hash</span>
+      </label>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-buttons">
+      <button id="btn-compress" class="btn btn-primary" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span class="btn-text">Compress File</span>
+      </button>
+      <button id="btn-decompress" class="btn btn-secondary" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="btn-text">Decompress</span>
+      </button>
+    </div>
+
+    <!-- ERROR MESSAGE -->
+    <div id="error-message" class="alert alert-error hidden">
+      <span class="alert-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </span>
+      <span class="alert-text"></span>
+    </div>
+
+    <!-- PROGRESS BAR (shown only during processing) -->
+    <div id="progress-container" class="progress-container hidden">
+      <div class="progress-header">
+        <span id="progress-status" class="progress-status">Processing...</span>
+        <span id="progress-percent" class="progress-percent">0%</span>
+      </div>
+      <div class="progress-bar-track">
+        <div id="progress-fill" class="progress-fill"></div>
+        <div class="progress-shimmer"></div>
+      </div>
+      <div class="progress-details">
+        <div class="progress-detail-item">
+          <span class="detail-label">Elapsed</span>
+          <span id="progress-elapsed" class="detail-value">0:00</span>
+        </div>
+        <div class="progress-detail-item">
+          <span class="detail-label">Remaining</span>
+          <span id="progress-remaining" class="detail-value">--:--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS DASHBOARD -->
+    <div id="results-dashboard" class="results-dashboard hidden">
+      <div class="results-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Results
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Original</span>
+          <span class="metric-value" id="val-original">--</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label" id="ui-label-compressed">Compressed</span>
+          <span class="metric-value" id="val-compressed">--</span>
+        </div>
+        <div class="metric-card metric-highlight">
+          <span class="metric-label">Ratio</span>
+          <span class="metric-value" id="val-ratio">--</span>
+        </div>
+        <div class="metric-card metric-highlight">
+          <span class="metric-label" id="ui-label-savings">Savings</span>
+          <span class="metric-value" id="val-savings">--</span>
+        </div>
+      </div>
+
+      <!-- VERIFICATION STATUS -->
+      <div id="verification-status" class="verification-box hidden">
+        <span class="verification-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        <span class="verification-text"></span>
+      </div>
+
+      <!-- DOWNLOAD BUTTON -->
+      <button id="btn-download" class="btn btn-download hidden">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Result
+      </button>
+    </div>
+
+    <!-- RECENT FILES HISTORY -->
+    <div class="recent-section" id="recent-section">
+      <div class="recent-header">
+        <span class="recent-title">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Recent files
+        </span>
+        <button class="recent-clear-btn" id="clear-history-btn">Clear all</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="history-empty" id="history-empty">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>No files yet</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="panel-footer">
+    <p class="footer-text">FileFixed<span class="footer-accent">.io</span> v1.0 &nbsp;·&nbsp; Built by SMG</p>
+  </footer>
+
+</div>
+
+<!-- INLINE UI SCRIPT (dark mode + file preview + video options + history) -->
+<script src="scripts/ui/SidePanelUI.js"></script>
+
+<!-- LIBRARY SCRIPTS -->
+<script src="lib/lamejs.min.js"></script>
+<script src="lib/pako.min.js"></script>
+<script src="lib/upng.min.js"></script>
+<script src="lib/jpeg-js.min.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
+<script src="lib/ffmpeg-core.js"></script>
+<script src="lib/ffmpeg.min.js"></script>
+
+<!-- FILES.IO MODULES -->
+<script src="scripts/utils/MetaData_manager.js" type="module"></script>
+<script src="scripts/utils/ProgressTracker.js" type="module"></script>
+<script src="scripts/ui/SidePanelHandler.js" type="module"></script>
 
 </body>
 </html>

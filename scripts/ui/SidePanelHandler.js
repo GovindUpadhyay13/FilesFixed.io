@@ -10,6 +10,13 @@ import { ProgressTracker } from '../utils/ProgressTracker.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('drop-zone');
+    
+    // ✅ CRITICAL: Exit early if drop zone doesn't exist
+    if (!dropZone) {
+      console.error('Drop zone element not found');
+      return;
+    }
+    
     const fileInput = document.getElementById('file-input');
     const fileNameDisplay = document.getElementById('file-name');
     const btnCompress = document.getElementById('btn-compress');
@@ -45,8 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== SETTINGS EVENT LISTENERS =====
   if (settingsToggle && settingsPanel && closeSettings) {
-      settingsToggle.addEventListener('click', () => settingsPanel.classList.remove('hidden'));
-      closeSettings.addEventListener('click', () => settingsPanel.classList.add('hidden'));
+      settingsToggle.addEventListener('click', () => {
+          if (settingsPanel) settingsPanel.classList.remove('hidden');
+      });
+      closeSettings.addEventListener('click', () => {
+          if (settingsPanel) settingsPanel.classList.add('hidden');
+      });
   }
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -59,15 +70,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        dropZone.addEventListener(eventName, (e) => {
+          e.dataTransfer.dropEffect = 'copy';
+          dropZone.classList.add('dragover');
+        }, false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
     });
 
-    dropZone.addEventListener('drop', (e) => {
-        handleFileSelect(e.dataTransfer.files[0]);
+    // ✅ FIXED: Handle both local files AND URLs with CORS safety
+    dropZone.addEventListener('drop', async (e) => {
+        const dt = e.dataTransfer;
+
+        // Case 1: Local file
+        if (dt.files && dt.files.length > 0) {
+            handleFileSelect(dt.files[0]);
+            enableButtons();
+            return;
+        }
+
+        // Case 2: From website (URL)
+        const url = dt.getData('text/uri-list');
+        if (url && url.trim()) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const blob = await res.blob();
+                const fileName = url.split('/').pop() || 'web-file';
+                const file = new File([blob], fileName, { type: blob.type });
+                handleFileSelect(file);
+                enableButtons();
+            } catch (err) {
+                console.error('Fetch failed (CORS likely):', err);
+                showError('This site blocks direct access. Try right-click → save image instead.');
+            }
+        }
     });
 
     // ===== CLICK TO UPLOAD =====
@@ -76,8 +115,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     fileInput.addEventListener('change', (e) => {
-        handleFileSelect(e.target.files[0]);
+        if (e.target.files && e.target.files[0]) {
+            handleFileSelect(e.target.files[0]);
+            enableButtons();
+        }
     });
+
+    // ===== ENABLE BUTTONS HELPER =====
+    function enableButtons() {
+        if (btnCompress) btnCompress.disabled = false;
+        if (btnDecompress) btnDecompress.disabled = false;
+    }
 
     function handleFileSelect(file) {
         hideError();
@@ -87,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return;
 
         const fileName = (file.name || '').toLowerCase();
+        console.log('📁 File selected:', file.name);
 
         const allowedTypes = [
             'text/plain', 'text/csv', 'image/jpeg', 'image/png',
@@ -100,19 +149,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!hasSupportedType && !hasSupportedExtension) {
             showError("Unsupported format. Please upload TXT, CSV, JPG, PNG, MP3, WAV, MP4, PDF, or GZ.");
-            btnCompress.disabled = true;
-            btnDecompress.disabled = true;
+            if (btnCompress) btnCompress.disabled = true;
+            if (btnDecompress) btnDecompress.disabled = true;
+            console.warn('⚠ Unsupported file type:', file.type);
             return;
         }
 
         currentFile = file;
-        fileNameDisplay.textContent = currentFile.name;
+        if (fileNameDisplay) fileNameDisplay.textContent = currentFile.name;
 
-        btnCompress.disabled = false;
-        btnDecompress.disabled = false;
+        if (btnCompress) btnCompress.disabled = false;
+        if (btnDecompress) btnDecompress.disabled = false;
 
   // ===== SHOW/HIDE SLIDER BASED ON FILE TYPE =====
-  if (fileName.endsWith('.mp4') || file.type === 'video/mp4') {
+  const isVideo = fileName.endsWith('.mp4') || file.type === 'video/mp4';
+  console.log('Video file?', isVideo);
+  if (isVideo) {
     showCompressionSlider();
   } else {
     hideCompressionSlider();
@@ -120,56 +172,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btnCompress.addEventListener('click', async () => {
-        if (!currentFile) return;
+        if (!currentFile) {
+            showError('No file selected. Please select a file first.');
+            return;
+        }
 
         btnCompress.disabled = true;
         btnCompress.textContent = "Compressing...";
 
+        console.log('🔄 Compression started for:', currentFile.name);
+        console.log('   File type:', currentFile.type);
+        console.log('   File size:', currentFile.size, 'bytes');
+        console.log('   Compression level:', selectedCompressionLevel);
+
         // ===== START PROGRESS TRACKER =====
         const tracker = new ProgressTracker();
         tracker.start();
-        let simulatedProgress = 0;
-        const timer = setInterval(() => {
-            if (simulatedProgress < 90) {
-                simulatedProgress += 5;
-                tracker.update(simulatedProgress, 100);
-            }
-        }, 300);
-
+        
+        let result;
         try {
-            let result;
+            hideError();
             const fileType = currentFile.type;
 
   // ===== PREPARE COMPRESSION OPTIONS =====
   let compressionOptions = {
-    level: selectedCompressionLevel
+    level: selectedCompressionLevel,
+    onProgress: (progressData) => {
+      // Pass actual bytes if available, otherwise pass percentage logic
+      if (progressData.current !== undefined && progressData.total !== undefined) {
+         tracker.update(progressData.current, progressData.total);
+      } else if (progressData.ratio !== undefined) {
+         const estimatedTotal = currentFile.size;
+         tracker.update(estimatedTotal * progressData.ratio, estimatedTotal);
+      }
+    }
   };
+  
+  console.log('   Options:', compressionOptions);
+
+            // Simulation interval to provide visual feedback if actual compressor doesn't report progress
+            let simulatedProgress = 0;
+            const timer = setInterval(() => {
+                if (simulatedProgress < 90) {
+                    simulatedProgress += 5;
+                    tracker.update(simulatedProgress, 100);
+                }
+            }, 300);
 
             if (fileType.startsWith('audio/')) {
+                console.log('→ Compressing audio file');
                 result = await compressAudio(currentFile);
             }
             else if (fileType === 'image/png') {
+                console.log('→ Compressing PNG image (lossless)');
                 result = await compressLosslessPNG(currentFile);
             }
             else if (fileType === 'image/jpeg' || fileType === 'image/jpg') {
+                console.log('→ Compressing JPG image');
                 result = await compressJPG(currentFile);
             }
             else if (fileType === 'video/mp4') {
+                console.log('→ Compressing MP4 video with level:', compressionOptions.level);
                 result = await compressMP4(currentFile, compressionOptions);
             }
             else if (fileType.startsWith('text/') || currentFile.name.endsWith('.csv') || fileType === 'application/pdf') {
+                console.log('→ Compressing text/document file');
                 result = await compressText(currentFile);
                 lastOriginalHash = result.originalHash;
                 showVerification('compress', result.originalHash);
             }
             else {
-                throw new Error("Cannot compress this file type.");
+                throw new Error("Cannot compress this file type: " + fileType);
             }
-
+            
+            if (!result || !result.blob) {
+                throw new Error('Compression returned invalid result');
+            }
+            
+            console.log('✓ Compression complete:', { blobSize: result.blob.size, metrics: result.metrics });
             processedBlob = result.blob;
 
             // ===== EMBED METADATA IF ENABLED =====
             if (verifyHashToggle && verifyHashToggle.checked) {
+                console.log('→ Generating and embedding metadata...');
                 const metadata = await MetaDataManager.generateMetadata(
                     currentFile, 
                     processedBlob, 
@@ -181,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 );
                 processedBlob = await MetaDataManager.embedMetadata(processedBlob, metadata);
+                console.log('✓ Metadata embedded successfully');
             }
 
             clearInterval(timer);
@@ -205,17 +291,27 @@ document.addEventListener('DOMContentLoaded', () => {
             setupDownload(processedBlob, downloadName.startsWith('compressed_') ? downloadName : `compressed_${downloadName}`);
 
         } catch (error) {
+            console.error('❌ Compression error:', error);
+            console.error('Error stack:', error.stack);
             showError(`Compression failed: ${error.message}`);
-            clearInterval(timer);
+            // Ensure tracker resources are cleaned up
+            if (typeof timer !== 'undefined') clearInterval(timer);
             tracker.end();
+            return; // Prevent further execution that might hit finally
         } finally {
+            if (typeof timer !== 'undefined') clearInterval(timer);
+            // Just in case it wasn't completed via success path
+            tracker.end(); 
             btnCompress.disabled = false;
             btnCompress.textContent = "Compress File";
         }
     });
 
     btnDecompress.addEventListener('click', async () => {
-        if (!currentFile) return;
+        if (!currentFile) {
+            showError('No file selected. Please select a file first.');
+            return;
+        }
 
         btnDecompress.disabled = true;
         btnDecompress.textContent = "Decompressing...";
@@ -223,15 +319,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // ===== START PROGRESS TRACKER =====
         const tracker = new ProgressTracker();
         tracker.start();
-        let simulatedProgress = 0;
-        const timer = setInterval(() => {
-            if (simulatedProgress < 90) {
-                simulatedProgress += 5;
-                tracker.update(simulatedProgress, 100);
-            }
-        }, 300);
 
         try {
+            hideError();
+            console.log('🔄 Decompression started for:', currentFile.name);
+            
+            // Simulation interval to provide visual feedback if actual compressor doesn't report progress
+            let simulatedProgress = 0;
+            const timer = setInterval(() => {
+                if (simulatedProgress < 90) {
+                    simulatedProgress += 5;
+                    tracker.update(simulatedProgress, 100);
+                }
+            }, 300);
+
             // ===== EXTRACT METADATA =====
             const { metadata, compressedData } = await MetaDataManager.extractMetadata(currentFile);
             const workingFile = new File([compressedData], currentFile.name, { type: currentFile.type, lastModified: Date.now() });
@@ -239,29 +340,50 @@ document.addEventListener('DOMContentLoaded', () => {
             let result;
             const fileName = workingFile.name || '';
             const normalizedName = fileName.toLowerCase();
-            const fileType = workingFile.type;
+            let fileType = workingFile.type;
+            
+            // Better file type detection from filename
+            if (!fileType || fileType === 'application/octet-stream') {
+                if (normalizedName.endsWith('.gz')) fileType = 'application/gzip';
+                else if (normalizedName.endsWith('.jpg') || normalizedName.endsWith('.jpeg')) fileType = 'image/jpeg';
+                else if (normalizedName.endsWith('.mp4')) fileType = 'video/mp4';
+                else if (normalizedName.endsWith('.txt')) fileType = 'text/plain';
+                else if (normalizedName.endsWith('.csv')) fileType = 'text/csv';
+            }
+            
+            console.log('File info:', { fileName, normalizedName, detectedType: fileType });
 
             if (normalizedName.endsWith('.gz') || fileType === 'application/gzip' || fileType === 'application/x-gzip') {
+                console.log('→ Decompressing as GZ/Text file');
                 result = await decompressText(workingFile, lastOriginalHash);
-                if (result.verification) {
+                if (result && result.verification) {
                     showVerification('decompress', null, result.verification);
                 }
             }
             else if (fileType === 'image/jpeg' || fileType === 'image/jpg' || normalizedName.endsWith('.jpg') || normalizedName.endsWith('.jpeg')) {
+                console.log('→ Decompressing as JPG image');
                 result = await decompressJPG(workingFile);
             }
             else if (fileType === 'video/mp4' || normalizedName.endsWith('.mp4')) {
+                console.log('→ Decompressing as MP4 video');
                 result = await decompressMP4(workingFile);
             }
             else {
+                console.log('→ Using generic decompression route for type:', fileType);
                 const readerRes = await FileProcessor.routeDecompression(workingFile);
+                if (!readerRes) throw new Error('No decompression method available for this file type: ' + fileType);
                 result = {
                     blob: new Blob([readerRes.data], { type: readerRes.type || workingFile.type || 'application/octet-stream' }),
                     metrics: { originalSize: '--', compressedSize: '--', ratio: 'N/A', savings: 'N/A' }
                 };
             }
 
+            if (!result || !result.blob) {
+                throw new Error('Decompression returned invalid result');
+            }
+
             processedBlob = result.blob;
+            console.log('✓ Decompression successful, blob size:', processedBlob.size);
 
             // ===== METADATA VALIDATION =====
             if (metadata) {
@@ -289,10 +411,15 @@ document.addEventListener('DOMContentLoaded', () => {
             setupDownload(processedBlob, downloadName);
 
         } catch (error) {
+            console.error('❌ Decompression error:', error);
+            console.error('Error stack:', error.stack);
             showError(`Decompression failed: ${error.message}`);
-            clearInterval(timer);
+            if (typeof timer !== 'undefined') clearInterval(timer);
             tracker.end();
+            return;
         } finally {
+            if (typeof timer !== 'undefined') clearInterval(timer);
+            tracker.end();
             btnDecompress.disabled = false;
             btnDecompress.textContent = "Decompress File";
         }
@@ -369,12 +496,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showError(msg) {
-        errorMessage.textContent = msg;
-        errorMessage.classList.remove('hidden');
+        if (errorMessage) {
+            const alertText = errorMessage.querySelector('.alert-text');
+            if (alertText) {
+                alertText.textContent = msg;
+            } else {
+                errorMessage.textContent = msg;
+            }
+            errorMessage.classList.remove('hidden');
+            console.error('Error:', msg);
+        }
     }
 
     function hideError() {
-        errorMessage.classList.add('hidden');
+        if (errorMessage) {
+            errorMessage.classList.add('hidden');
+        }
     }
 
     function showVerification(mode, hash, verification) {
@@ -436,18 +573,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showCompressionSlider() {
     if (compressionSlider) {
-      const sliderContainer = compressionSlider.closest('.slider-container');
-      if (sliderContainer) {
-        sliderContainer.parentElement.classList.remove('hidden');
+      compressionSlider.style.display = 'block';
+      const videoOptionsLabel = document.querySelector('.video-options-label');
+      if (videoOptionsLabel) {
+        videoOptionsLabel.parentElement.style.display = 'block';
+      }
+      // Also show the level pills container
+      const levelPills = document.querySelector('.level-pills');
+      if (levelPills) {
+        levelPills.parentElement.style.display = 'block';
       }
     }
   }
 
   function hideCompressionSlider() {
     if (compressionSlider) {
-      const sliderContainer = compressionSlider.closest('.slider-container');
-      if (sliderContainer) {
-        sliderContainer.parentElement.classList.add('hidden');
+      compressionSlider.style.display = 'none';
+      const videoOptionsLabel = document.querySelector('.video-options-label');
+      if (videoOptionsLabel) {
+        videoOptionsLabel.parentElement.style.display = 'none';
+      }
+      // Also hide the level pills container
+      const levelPills = document.querySelector('.level-pills');
+      if (levelPills) {
+        levelPills.parentElement.style.display = 'none';
       }
     }
   }

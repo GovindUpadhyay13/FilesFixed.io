@@ -170,8 +170,8 @@ await ffmpeg.run(
 
     const psnr = await calculateVideoPSNR(ffmpeg, inputName, outputName);
 
-    try { ffmpeg.exit(); } catch (_) { }
-    _ffmpegInstance = null;
+    try { ffmpeg.FS('unlink', inputName); } catch (_) { }
+    try { ffmpeg.FS('unlink', outputName); } catch (_) { }
 
     return {
         blob: blob,
@@ -213,8 +213,8 @@ export async function decompressMP4(file) {
 
     const psnr = await calculateVideoPSNR(ffmpeg, inputName, outputName);
 
-    try { ffmpeg.exit(); } catch (_) { }
-    _ffmpegInstance = null;
+    try { ffmpeg.FS('unlink', inputName); } catch (_) { }
+    try { ffmpeg.FS('unlink', outputName); } catch (_) { }
 
     return {
         blob: blob,
