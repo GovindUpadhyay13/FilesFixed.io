@@ -18,7 +18,7 @@
 
 ## User Interface
 
- !                                            [FilesFixed.io Side Panel UI](assets/UserInterface.png)
+ ![FilesFixed.io Side Panel UI](assets/UserInterface.png)
 
 ---
 
