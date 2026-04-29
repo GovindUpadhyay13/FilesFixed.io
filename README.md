@@ -1,4 +1,4 @@
-# FilesFixed.io — Universal File Compression Extension
+# FilesFixed.io — File fixed in single click
 
 ![Status](https://img.shields.io/badge/Status-Submitted-brightgreen)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-orange)
@@ -9,13 +9,16 @@
 
 ## Overview
 
+![FilesFixed.io Side Panel UI](assets/Interface_filefixed.io.png)
+
+
 **FilesFixed.io** is a fully browser-native Chrome Extension that compresses and decompresses files of multiple types — text, images, audio, and video — entirely offline, without any server-side processing. The extension opens as a **Side Panel** (Manifest V3) and supports both **lossless** compression (guaranteeing 100% data-identical rebuilds verified via SHA-256 hashing) and **lossy** compression (discarding perceptually imperceptible data for maximum size reduction). After every operation, it transparently reports performance metrics including compression ratio, space savings percentage, and perceptual quality scores (PSNR / SSIM) for lossy media. The UI features a premium dark/light-themed glassmorphism aesthetic with smooth state transitions and a recent-files history panel, and remains fully responsive even during heavy WebAssembly workloads via a dedicated background Service Worker.
 
 ---
 
 ## User Interface
 
-![FilesFixed.io Side Panel UI](assets/Interface_filefixed.io.png)
+![FilesFixed.io Side Panel UI](assets/UserInterface.png)
 
 ---
 
