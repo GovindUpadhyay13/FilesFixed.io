@@ -43,14 +43,6 @@
 | **M** | Lossy Media Engine | `image-jpg.js`, `video-mp4.js` |
 | **G** | Core DSA, Metrics & Lossless | `text-gz.js`, `image-png.js`, `metrics.js`, `crypto-hash.js` |
 
-### Individual Responsibilities
-
-Everyone had a fair distribution of work (≈ 33% each).
-
-- **S** — Built the glassmorphism Side Panel UI with dark/light theme toggle and recent-files history, wired all DOM event listeners for file input/output interactions, and implemented `lamejs` for in-browser MP3/WAV audio compression.
-- **M** — Implemented spatial redundancy algorithms for lossy JPEG image compression via `jpeg-js` (with PSNR reporting) and handled temporal redundancy reduction for video via `ffmpeg.wasm`, including Fast/Max compression level controls.
-- **G** — Wrote dictionary-based DEFLATE/gzip text compression using `pako`, implemented `UPNG.js` for lossless PNG encoding, calculated Compression Ratios, Space Savings %, PSNR and SSIM quality metrics, generated SHA-256 hashes for lossless rebuild verification via the SubtleCrypto Web API, and configured the Manifest V3 architecture with the background Service Worker.
-
 ---
 
 ## Features
@@ -217,7 +209,9 @@ For lossy formats, perceptual quality metrics are calculated and displayed:
 
 ---
 
-## References
+## Changes to be made 
+- Adding file conversion to thw sidepanel , so user can convert his files directly using this extension .
+- Video compression - improve the friction in fast and max modes .
 
 ### Libraries
 - [pako](https://github.com/nodeca/pako) — High-speed zlib port to JavaScript
